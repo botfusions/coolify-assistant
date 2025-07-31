@@ -7,7 +7,17 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Tailwind production uyarısını kapat
+        // Tailwind production uyarısını tamamen kapat
+        if (typeof console !== 'undefined' && console.warn) {
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && args[0].includes && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+                    return; // Bu uyarıyı gösterme
+                }
+                originalWarn.apply(console, args);
+            };
+        }
+        
         tailwind.config = {
             theme: {
                 extend: {}
