@@ -197,6 +197,7 @@
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
+                                chatInput: messageText,
                                 message: messageText,
                                 timestamp: new Date().toISOString(),
                                 user: 'web_user'
