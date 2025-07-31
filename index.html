@@ -39,137 +39,112 @@
                 <p class="text-gray-400">Mesajınızı yazın ve dosya ekleyin</p>
             </div>
 
-            <div x-data="fileUploader()" class="space-y-6">
-                <!-- File Upload Area -->
-                <div class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-indigo-500 transition-colors mb-6"
-                     @dragover.prevent="dragOver = true"
-                     @dragleave.prevent="dragOver = false"
-                     @drop.prevent="handleDrop($event)"
-                     :class="dragOver ? 'border-indigo-500 bg-gray-700' : ''">
+            <div x-data="chatInterface()" class="space-y-6">
+                <!-- Chat Messages Area -->
+                <div class="bg-gray-700 rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto" x-ref="messagesContainer">
+                    <div x-show="messages.length === 0" class="text-center text-gray-400 mt-20">
+                        <i class="fas fa-comments text-4xl mb-4"></i>
+                        <p>Henüz mesaj yok. İlk mesajınızı yazın!</p>
+                    </div>
                     
+                    <template x-for="(msg, index) in messages" :key="index">
+                        <div class="mb-4">
+                            <!-- User Message -->
+                            <div class="flex justify-end mb-2">
+                                <div class="bg-indigo-600 text-white px-4 py-2 rounded-lg max-w-[80%]">
+                                    <p x-text="msg.text"></p>
+                                    <div x-show="msg.files && msg.files.length > 0" class="mt-2">
+                                        <template x-for="file in msg.files" :key="file.name">
+                                            <div class="text-xs bg-indigo-700 px-2 py-1 rounded mt-1">
+                                                <i class="fas fa-paperclip mr-1"></i>
+                                                <span x-text="file.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="text-xs text-indigo-200 mt-1" x-text="msg.time"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Bot Response (if any) -->
+                            <div x-show="msg.response" class="flex justify-start">
+                                <div class="bg-gray-600 text-gray-200 px-4 py-2 rounded-lg max-w-[80%]">
+                                    <p x-text="msg.response"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Typing indicator -->
+                    <div x-show="uploading" class="flex justify-start mb-4">
+                        <div class="bg-gray-600 text-gray-200 px-4 py-2 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="animate-spin">
+                                    <i class="fas fa-spinner text-sm"></i>
+                                </div>
+                                <span class="text-sm">Gönderiliyor...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="bg-gray-700 rounded-lg p-4">
+                    <!-- File Upload (Compact) -->
+                    <div x-show="files.length > 0" class="mb-3">
+                        <div class="text-sm text-gray-300 mb-2">
+                            <i class="fas fa-paperclip mr-1"></i>Ekli dosyalar:
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="(file, index) in files" :key="index">
+                                <div class="flex items-center bg-gray-600 px-2 py-1 rounded text-xs text-gray-200">
+                                    <i class="fas fa-file mr-1"></i>
+                                    <span x-text="file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name"></span>
+                                    <button @click="removeFile(index)" class="ml-2 text-red-400 hover:text-red-300">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Message Input -->
+                    <div class="flex items-end space-x-3">
+                        <div class="flex-1">
+                            <textarea x-model="formData.message" 
+                                      x-ref="messageInput"
+                                      @keydown="handleKeydown($event)"
+                                      @input="autoResize($event)"
+                                      rows="1" 
+                                      class="w-full px-4 py-3 bg-gray-600 border border-gray-500 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none placeholder-gray-400"
+                                      placeholder="Mesajınızı yazın... (Enter ile gönder)"
+                                      style="min-height: 44px; max-height: 120px;"></textarea>
+                        </div>
+                        
+                        <!-- File Upload Button -->
+                        <button @click="openFileDialog()" 
+                                class="p-3 text-gray-400 hover:text-gray-200 transition-colors"
+                                title="Dosya ekle">
+                            <i class="fas fa-paperclip text-lg"></i>
+                        </button>
+                        
+                        <!-- Send Button -->
+                        <button @click="sendMessage()" 
+                                :disabled="!canSendMessage() || uploading"
+                                :class="canSendMessage() && !uploading ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'"
+                                class="p-3 rounded-lg transition-colors">
+                            <i x-show="!uploading" class="fas fa-paper-plane text-lg"></i>
+                            <i x-show="uploading" class="fas fa-spinner animate-spin text-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Hidden file input -->
                     <input type="file" 
                            x-ref="fileInput"
                            id="fileInput" 
                            multiple 
                            @change="handleFileSelect($event)"
                            class="hidden">
-                    
-                    <div class="space-y-3">
-                        <i class="fas fa-file-upload text-3xl text-gray-500"></i>
-                        <div>
-                            <p class="text-lg font-medium text-gray-300 mb-2">
-                                Dosyaları buraya sürükleyin veya tıklayın
-                            </p>
-                            <button @click="openFileDialog()" 
-                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
-                                Dosya Seç
-                            </button>
-                        </div>
-                        <p class="text-sm text-gray-500">
-                            PDF, DOC, DOCX, TXT, JPG, PNG, MP4, vs.
-                        </p>
-                    </div>
                 </div>
-
-                <!-- Chat Message Input -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-3">
-                            <i class="fas fa-comment mr-2"></i>Mesajınız
-                        </label>
-                        <div class="relative">
-                            <textarea x-model="formData.message" 
-                                      x-ref="messageInput"
-                                      @keydown="handleKeydown($event)"
-                                      rows="6" 
-                                      class="w-full px-4 py-4 pr-16 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none placeholder-gray-400"
-                                      placeholder="Mesajınızı yazın... (Enter ile gönder, Shift+Enter ile yeni satır)"></textarea>
-                            <button @click="sendMessage()" 
-                                    :disabled="!canSendMessage()"
-                                    :class="canSendMessage() ? 'text-indigo-400 hover:text-indigo-300' : 'text-gray-600'"
-                                    class="absolute bottom-4 right-4 p-2 transition-colors">
-                                <i class="fas fa-paper-plane text-xl"></i>
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between mt-2">
-                            <p class="text-xs text-gray-500">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Enter ile gönder, Shift+Enter ile yeni satır
-                            </p>
-                            <div class="text-xs text-gray-500">
-                                <span x-text="formData.message.length"></span> karakter
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Selected Files Display -->
-                <div x-show="files.length > 0" class="space-y-3">
-                    <h3 class="text-lg font-semibold text-gray-300">
-                        <i class="fas fa-list mr-2"></i>Seçilen Dosyalar
-                    </h3>
-                    <div class="space-y-2">
-                        <template x-for="(file, index) in files" :key="index">
-                            <div class="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <i class="fas fa-file text-indigo-400"></i>
-                                    <div>
-                                        <p class="font-medium text-gray-200" x-text="file.name"></p>
-                                        <p class="text-sm text-gray-400" x-text="formatFileSize(file.size)"></p>
-                                    </div>
-                                </div>
-                                <button @click="removeFile(index)" 
-                                        class="text-red-400 hover:text-red-300">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Upload Progress -->
-                <div x-show="uploading" class="space-y-3">
-                    <div class="bg-indigo-900 border border-indigo-700 rounded-lg p-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="animate-spin">
-                                <i class="fas fa-spinner text-indigo-400"></i>
-                            </div>
-                            <span class="text-indigo-200 font-medium">Gönderiliyor...</span>
-                        </div>
-                        <div class="mt-3">
-                            <div class="bg-indigo-800 rounded-full h-2">
-                                <div class="bg-indigo-400 h-2 rounded-full transition-all duration-300" 
-                                     :style="`width: ${uploadProgress}%`"></div>
-                            </div>
-                            <p class="text-sm text-indigo-300 mt-1" x-text="`${uploadProgress}% tamamlandı`"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Success/Error Messages -->
-                <div x-show="message" 
-                     :class="messageType === 'success' ? 'bg-green-900 border-green-700 text-green-200' : 'bg-red-900 border-red-700 text-red-200'"
-                     class="border rounded-lg p-4">
-                    <div class="flex items-center space-x-2">
-                        <i :class="messageType === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle'"></i>
-                        <span x-text="message"></span>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <button @click="sendMessage()" 
-                        :disabled="(!formData.message.trim() && files.length === 0) || uploading"
-                        :class="(!formData.message.trim() && files.length === 0) || uploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'"
-                        class="w-full text-white py-3 px-6 rounded-lg font-semibold transition-colors">
-                    <span x-show="!uploading" class="flex items-center justify-center">
-                        <i class="fas fa-paper-plane mr-2"></i>
-                        Gönder
-                    </span>
-                    <span x-show="uploading" class="flex items-center justify-center">
-                        <i class="fas fa-spinner animate-spin mr-2"></i>
-                        Gönderiliyor...
-                    </span>
-                </button>
             </div>
         </div>
 
