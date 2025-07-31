@@ -1,60 +1,26 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>n8n Webhook Test Arayüzü</title>
-  <style>
-    body { font-family: Arial; background: #f0f8ff; margin: 30px; }
-    .container { max-width: 700px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; text-align: center; }
-    .webhook-url { background: #34495e; color: white; padding: 15px; border-radius: 5px; word-break: break-all; margin: 15px 0; }
-    .test-section { margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
-    button { background: #27ae60; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; }
-    button:hover { background: #229954; }
-    .result { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 5px; min-height: 100px; white-space: pre-wrap; }
-  </style>
-</head>
+<html><head><title>Webhook Test</title></head>
 <body>
-  <div class="container">
-    <h1>🔗 n8n Webhook Test Arayüzü</h1>
-    
-    <h3>Webhook URL'niz:</h3>
-    <div class="webhook-url" id="webhookUrl">
-      https://n8n.botfusions.com/webhook/11ef0598-b59d-4335-b797-a4b5a0402fa8
-    </div>
-    
-    <div class="test-section">
-      <h3>Test Webhook'u Çalıştırın</h3>
-      <button onclick="testWebhook()">🚀 Test Gönder</button>
-      <div class="result" id="result">Test sonuçları burada görünecek...</div>
-    </div>
-    
-    <h3>Alternatif Test için:</h3>
-    <pre>
-curl -X POST https://n8n.botfusions.com/webhook/11ef0598-b59d-4335-b797-a4b5a0402fa8 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "Test mesajınız",
-    "timestamp": "2024-07-31T18:45:00Z",
-    "user_data": {"test_mode": true}
-  }'
-    </pre>
-  </div>
+<h1>🔗 n8n Webhook Test Arayüzü</h1>
+<h3>Webhook URL:</h3>
+<div style="background:#34495e;color:white;padding:15px;border-radius:5px">
+  https://n8n.botfusions.com/webhook/11ef0598-b59d-4335-b797-a4b5a0402fa8
+</div>
 
-  <script>
-    function testWebhook() {
-      fetch('/test-webhook', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({test: true})
-      })
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-      })
-      .catch(error => {
-        document.getElementById('result').innerText = 'Hata: ' + error;
-      });
-    }
-  </script>
-</body>
-</html>
+<h3>Test Butonu:</h3>
+
+<pre>
+curl -X POST https://n8n.botfusions.com/webhook/11ef0598-b59d-4335-b797-a4b5a0402fa8 \\
+  -H "Content-Type: application/json" \\
+  -d '{"message":"Test mesajı","timestamp":"2024-07-31T18:45:00Z"}'
+</pre>
+
+<script>
+function testWebhook() {
+  fetch("/test-webhook",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({test:true})})
+  .then(res=>res.json()).then(data=>{
+    document.getElementById("result").innerText="Yanıt: "+JSON.stringify(data,null,2);
+  });
+}
+</script>
+</body></html>
