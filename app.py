@@ -1,11 +1,12 @@
-from flask import Flask, request, jsonify
-app = Flask(__name__)
+from flask import Flask, request, jsonify, render_template
+
+app = Flask(__name__, template_folder='templates')
 
 @app.route("/")
 def index():
-    return "<h1>🤖 AI Asistanı Çalışıyor!</h1>"
+    return render_template('index.html')
 
-@app.route("/ask", methods=["POST"])
+@app.route("/api/ask", methods=["POST"])
 def ask():
     msg = request.json.get("message", "")
     return jsonify({"reply": f"👋 Mesajınız alındı: {msg}"})

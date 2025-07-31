@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🤖 AI Asistanı</title>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; }
+    #chat { max-width: 600px; margin: 20px auto; height: 400px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; }
+    #input { width: calc(100% - 100px); padding: 10px; margin: 10px auto; display: block; }
+    button { padding: 10px; }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+  <input id="input" placeholder="Mesajınız...">
+  <button onclick="sendMessage()">Gönder</button>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+
+    display('Merhaba!', '🤖 Asistan');
+
+    function sendMessage() {
+      const msg = input.value;
+      if (!msg) return;
+
+      display(msg, 'Sen');
+      input.value = '';
+
+      fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      })
+      .then(res => res.json())
+      .then(data => display(data.reply, '🤖 Asistan'))
+      .catch(err => display('⚠️ Hata!', '🤖 Asistan'));
+    }
+
+    function display(text, sender) {
+      chat.innerHTML += `<p><strong>${sender}:</strong> ${text}</p>`;
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>
