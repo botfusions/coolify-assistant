@@ -1,10 +1,14 @@
-FROM python:3.10-slim
+# Dockerfile
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy the HTML file to nginx public directory
+COPY index.html /usr/share/nginx/html/
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy custom nginx configuration (optional)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-COPY . .
+# Expose port 80
+EXPOSE 80
 
-CMD ["python", "app.py"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
