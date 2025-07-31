@@ -1,12 +1,10 @@
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
+from flask import Flask, request, jsonify
+app = Flask(__name__)
 
-app = Flask(__name__, template_folder='templates')
-CORS(app)
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return "🤖 AI Asistanı Çalışıyor!"
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -14,4 +12,4 @@ def ask():
     return jsonify({"reply": f"👋 Mesajınız alındı: {msg}"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3001)
+    app.run(host="0.0.0.0", port=3001, debug=False)
