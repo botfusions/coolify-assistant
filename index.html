@@ -48,6 +48,7 @@
                      :class="dragOver ? 'border-indigo-500 bg-gray-700' : ''">
                     
                     <input type="file" 
+                           x-ref="fileInput"
                            id="fileInput" 
                            multiple 
                            @change="handleFileSelect($event)"
@@ -59,7 +60,7 @@
                             <p class="text-lg font-medium text-gray-300 mb-2">
                                 Dosyaları buraya sürükleyin veya tıklayın
                             </p>
-                            <button @click="$refs.fileInput.click()" 
+                            <button @click="openFileDialog()" 
                                     class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
                                 Dosya Seç
                             </button>
@@ -194,6 +195,13 @@
                     message: ''
                 },
 
+                openFileDialog() {
+                    const fileInput = document.getElementById('fileInput');
+                    if (fileInput) {
+                        fileInput.click();
+                    }
+                },
+
                 canSendMessage() {
                     return this.formData.message.trim() || this.files.length > 0;
                 },
@@ -206,11 +214,6 @@
                     // Shift+Enter ile yeni satır (default behavior)
                 },
 
-                sendMessage() {
-                    if (!this.canSendMessage()) return;
-                    this.uploadFiles();
-                },
-
                 handleFileSelect(event) {
                     this.addFiles(Array.from(event.target.files));
                 },
@@ -218,6 +221,11 @@
                 handleDrop(event) {
                     this.dragOver = false;
                     this.addFiles(Array.from(event.dataTransfer.files));
+                },
+
+                sendMessage() {
+                    if (!this.canSendMessage()) return;
+                    this.uploadFiles();
                 },
 
                 addFiles(newFiles) {
@@ -239,14 +247,6 @@
 
                 clearMessage() {
                     this.message = '';
-                },
-
-                showMessage(text, type = 'success') {
-                    this.message = text;
-                    this.messageType = type;
-                    setTimeout(() => {
-                        this.clearMessage();
-                    }, 5000);
                 },
 
                 async uploadFiles() {
