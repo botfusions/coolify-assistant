@@ -1,12 +1,14 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 
 app = Flask(__name__, template_folder='templates')
+CORS(app)
 
 @app.route("/")
 def index():
     return render_template('index.html')
 
-@app.route("/api/ask", methods=["POST"])
+@app.route("/ask", methods=["POST"])
 def ask():
     msg = request.json.get("message", "")
     return jsonify({"reply": f"👋 Mesajınız alındı: {msg}"})
